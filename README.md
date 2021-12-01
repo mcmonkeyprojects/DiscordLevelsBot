@@ -3,13 +3,17 @@ DiscordLevelsBot
 
 A simple bot for activity tracking / leveling on Discord. Inspired by Mee6. Designed for more customization (for my own needs at least) and to not have all the unrelated Mee6 features in the way (especially not the whole 'premium' thing yknow).
 
+By default, when a user posts a message (at least one minute after their last message), they get a random bit of XP from 15 to 25 points. This XP is used to obtain levels, that are incrementally harder to reach (reaching level 1 only takes about 5 messages, but level 100 takes millions).
+
 ### Want To Add The Public Instance?
 
 - Just [click here](https://discord.com/api/oauth2/authorize?client_id=915501392519651358&permissions=2415922176&scope=bot%20applications.commands).
 
 ### Admin Configuration
 
-- TODO
+- For now, the admin configuration panel is very cheap and simple: type `@LevelsBot admin-configure` for info.
+- You can do for example `@LevelsBot admin-configure restrict_channel 1234` to prevent that channel from being used to gain XP.
+- You can configure channel restrictions, level role rewards (role auto-granted when a user hits a level), XP per tick minimum and maximum, time between messages before XP should be allowed to tick again, minimum level before "level up!" notifications show.
 
 ### Setup Your Own Instance
 
