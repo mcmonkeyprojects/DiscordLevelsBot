@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LiteDB;
 
 namespace DiscordLevelsBot
 {
@@ -13,7 +14,8 @@ namespace DiscordLevelsBot
         public ulong RawID;
 
         /// <summary>The ID reformatted for LiteDB.</summary>
-        public long _ID
+        [BsonId]
+        public long DB_ID_Signed
         {
             get => unchecked((long)RawID);
             set

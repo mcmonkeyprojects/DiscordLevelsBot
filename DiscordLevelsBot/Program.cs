@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 using System.Runtime.Loader;
 using DiscordBotBase;
 using Discord.WebSocket;
@@ -13,6 +14,10 @@ namespace DiscordLevelsBot
     {
         public static void Main(string[] args)
         {
+            if (!Directory.Exists("./saves"))
+            {
+                Directory.CreateDirectory("./saves");
+            }
             DiscordBotConfig config = new()
             {
                 CacheSize = 0,
