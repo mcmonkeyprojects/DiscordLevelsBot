@@ -34,7 +34,7 @@ namespace DiscordLevelsBot
         public long PartialXP { get; set; } = 0;
 
         /// <summary>Calculates the XP needed to reach the next level.</summary>
-        public long CalcTotalXPToNextLevel() => (5 * (Level * Level)) + (50 * Level) + 100;
+        public long CalcTotalXPToNextLevel() => Program.XPToNextLevelFrom(Level);
 
         /// <summary>Unix 64-bit seconds timestamp of the last time the user received XP.</summary>
         public long LastUpdatedTime { get; set; } = 0;

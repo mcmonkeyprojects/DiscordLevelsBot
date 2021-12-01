@@ -133,7 +133,6 @@ namespace DiscordLevelsBot
         /// <summary>Stores a user into the database.</summary>
         public void DBStoreUser(UserData user)
         {
-            Console.WriteLine($"DB: {user.RawID} is now {user.XP} xp at {user.Level}L, with {user.PartialXP} out of {user.CalcTotalXPToNextLevel()} to go, next {user.LeaderboardNext} prev {user.LeaderboardPrev}");
             Users.Upsert(user);
         }
 
@@ -200,8 +199,11 @@ namespace DiscordLevelsBot
         {
             lock (Lock)
             {
-                user.LastKnownName = $"{discordUser.Username}#{discordUser.Discriminator}";
-                user.LastKnownAvatar = discordUser.GetAvatarUrl() ?? discordUser.GetDefaultAvatarUrl();
+                if (discordUser is not null)
+                {
+                    user.LastKnownName = $"{discordUser.Username}#{discordUser.Discriminator}";
+                    user.LastKnownAvatar = discordUser.GetAvatarUrl() ?? discordUser.GetDefaultAvatarUrl();
+                }
                 if (user.LeaderboardNext == 0 && user.LeaderboardPrev == 0)
                 {
                     if (Config.BottomID == 0) // Empty leaderboard - this is the first user
