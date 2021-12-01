@@ -36,6 +36,7 @@ namespace DiscordLevelsBot
                 EnsureCaching = false,
                 Initialize = Initialize,
                 CommandPrefix = null,
+                ShouldPayAttentionToMessage = (message) => message is SocketUserMessage uMessage && uMessage.Channel is SocketGuildChannel,
                 OnShutdown = () =>
                 {
                     ConsoleCancelToken.Cancel();

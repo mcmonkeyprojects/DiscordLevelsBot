@@ -30,7 +30,7 @@ namespace DiscordLevelsBot
         public static AsciiMatcher PingIgnorableCharacters = new("<>!@");
 
         /// <summary>Very minimal character set to approximate names with, without escaping risk.</summary>
-        public static AsciiMatcher NameSimplifier = new(AsciiMatcher.BothCaseLetters + AsciiMatcher.Digits + "_ ");
+        public static AsciiMatcher NameSimplifier = new(AsciiMatcher.BothCaseLetters + AsciiMatcher.Digits + "_ #!.,[]()");
 
         /// <summary>Creates a rank information display embed for a given user.</summary>
         public static Embed BuildRankEmbedFor(UserData user)
@@ -40,7 +40,7 @@ namespace DiscordLevelsBot
             return new EmbedBuilder().WithTitle($"Rank For {name}").WithThumbnailUrl(user.LastKnownAvatar)
                 .AddField("User", $"<@{user.RawID}>", true)
                 .AddField("Last Known Name", $"`{name}`", true)
-                .AddField("Last Seen", $"{StringConversionHelper.DateTimeToString(lastSeen, false)} ... {(lastSeen - DateTimeOffset.UtcNow).SimpleFormat(true)}", true)
+                .AddField("Last Seen", $"`{StringConversionHelper.DateTimeToString(lastSeen, false)}` ... `{(lastSeen - DateTimeOffset.UtcNow).SimpleFormat(true)}`")
                 .AddField("Total XP", $"{user.XP}", true)
                 .AddField("Current Level", $"{user.Level}", true)
                 .AddField("XP To Next Level", $"{user.PartialXP} / {user.CalcTotalXPToNextLevel()}", true)
