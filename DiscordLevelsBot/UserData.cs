@@ -44,5 +44,11 @@ namespace DiscordLevelsBot
 
         /// <summary>The next (lower) person on the leaderboard (or 0 if on bottom).</summary>
         public ulong LeaderboardPrev { get; set; } = 0;
+
+        /// <summary>Last known username for this user.</summary>
+        public string LastKnownName { get; set; } = "";
+
+        /// <summary>Last known avatar for this user.</summary>
+        public string LastKnownAvatar { get; set; } = "";
     }
 }

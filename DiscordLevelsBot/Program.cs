@@ -35,6 +35,7 @@ namespace DiscordLevelsBot
                 CacheSize = 0,
                 EnsureCaching = false,
                 Initialize = Initialize,
+                CommandPrefix = null,
                 OnShutdown = () =>
                 {
                     ConsoleCancelToken.Cancel();
@@ -50,6 +51,14 @@ namespace DiscordLevelsBot
         public static void Initialize(DiscordBot bot)
         {
             bot.Client.MessageReceived += Client_MessageReceived;
+            bot.Client.Ready += async () =>
+            {
+                await bot.Client.SetGameAsync("for new level ups to grant", type: ActivityType.Watching);
+            };
+            bot.RegisterCommand(LevelsBotCommands.Command_Help, "help", "halp", "hlp", "?");
+            bot.RegisterCommand(LevelsBotCommands.Command_Rank, "rank", "level", "xp", "exp", "experience", "levelup");
+            bot.RegisterCommand(LevelsBotCommands.Command_Leaderboard, "leaderboard", "board", "leaders", "top");
+            bot.RegisterCommand(LevelsBotCommands.Command_AdminConfigure, "admin-configure", "adminconfigure");
         }
 
         public static async void ConsoleLoop()
@@ -106,6 +115,7 @@ namespace DiscordLevelsBot
             {
                 return;
             }
+            Console.WriteLine($"DB: {message.Author.Username} spoke");
             bool didGrantAny;
             long origLevel;
             UserData user;
@@ -115,7 +125,8 @@ namespace DiscordLevelsBot
                 {
                     user = database.GetUser(message.Author.Id);
                     origLevel = user.Level;
-                    didGrantAny = database.GrantXPIfNeeded(user);
+                    didGrantAny = database.GrantXPIfNeeded(user, author);
+                    Console.WriteLine($"DB: {message.Author.Username} yield {user.XP} / {user.Level} / {didGrantAny}");
                 }
                 if (didGrantAny && user.Level > origLevel)
                 {
@@ -136,11 +147,12 @@ namespace DiscordLevelsBot
                                 }
                             }
                         }
-                        if (user.Level >= database.Config.MinimumLevelForNotif)
-                        {
-                            UserCommands.SendReply(userMessage, new EmbedBuilder().WithTitle("Level up!").WithDescription($"Congratulations <@{user.RawID}>! You're now at level {user.Level}!")
-                                .WithColor(0, 128, 255).WithFooter("[Discord Levels Bot](https://github.com/mcmonkeyprojects/DiscordLevelsBot)").Build());
-                        }
+                    }
+                    if (user.Level >= database.Config.MinimumLevelForNotif)
+                    {
+                        UserCommands.SendReply(userMessage, new EmbedBuilder().WithTitle("Level up!").WithDescription($"Congratulations <@{user.RawID}>! You're now at **level {user.Level}**!")
+                            .WithThumbnailUrl(DiscordBotBaseHelper.CurrentBot.Client.CurrentUser.GetAvatarUrl())
+                            .WithColor(0, 128, 255).WithAuthor(new EmbedAuthorBuilder().WithName("Discord Levels Bot").WithUrl("https://github.com/mcmonkeyprojects/DiscordLevelsBot")).Build());
                     }
                 }
             }

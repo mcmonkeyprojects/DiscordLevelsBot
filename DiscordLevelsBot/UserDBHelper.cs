@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using LiteDB;
 using FreneticUtilities.FreneticToolkit;
+using Discord;
+using Discord.WebSocket;
 
 namespace DiscordLevelsBot
 {
@@ -128,6 +130,13 @@ namespace DiscordLevelsBot
             }
         }
 
+        /// <summary>Stores a user into the database.</summary>
+        public void DBStoreUser(UserData user)
+        {
+            Console.WriteLine($"DB: {user.RawID} is now {user.XP} xp at {user.Level}L, with {user.PartialXP} out of {user.CalcTotalXPToNextLevel()} to go, next {user.LeaderboardNext} prev {user.LeaderboardPrev}");
+            Users.Upsert(user);
+        }
+
         /// <summary>Automatically repositions a user in the leaderboard.</summary>
         public void Reposition(UserData user)
         {
@@ -143,12 +152,12 @@ namespace DiscordLevelsBot
                     return;
                 }
                 next.LeaderboardPrev = user.LeaderboardPrev;
-                Users.Update(next);
+                DBStoreUser(next);
                 UserData prev = user.LeaderboardPrev == 0 ? null : GetUser(user.LeaderboardPrev);
                 if (prev is not null)
                 {
                     prev.LeaderboardNext = user.LeaderboardNext;
-                    Users.Update(prev);
+                    DBStoreUser(prev);
                 }
                 else // If prev is null, we were the bottom
                 {
@@ -162,9 +171,9 @@ namespace DiscordLevelsBot
                     if (next.LeaderboardNext == 0)
                     {
                         next.LeaderboardNext = user.RawID;
-                        Users.Update(next);
+                        DBStoreUser(next);
                         user.LeaderboardPrev = next.RawID;
-                        Users.Upsert(user);
+                        DBStoreUser(user);
                         Config.TopID = user.RawID;
                         UpdateConfig();
                         return;
@@ -176,51 +185,48 @@ namespace DiscordLevelsBot
                 {
                     prev = GetUser(origPrev);
                     prev.LeaderboardNext = user.RawID;
-                    Users.Update(prev);
+                    DBStoreUser(prev);
                     user.LeaderboardPrev = origPrev;
                 }
                 next.LeaderboardPrev = user.RawID;
-                Users.Update(next);
+                DBStoreUser(next);
                 user.LeaderboardNext = next.RawID;
-                Users.Upsert(user);
+                DBStoreUser(user);
             }
         }
 
         /// <summary>Updates the given user object in the database, calculating leaderboard reposition if needed.</summary>
-        public void UpdateUser(UserData user)
+        public void UpdateUser(UserData user, SocketGuildUser discordUser)
         {
             lock (Lock)
             {
+                user.LastKnownName = $"{discordUser.Username}#{discordUser.Discriminator}";
+                user.LastKnownAvatar = discordUser.GetAvatarUrl() ?? discordUser.GetDefaultAvatarUrl();
                 if (user.LeaderboardNext == 0 && user.LeaderboardPrev == 0)
                 {
-                    if (Config.BottomID == 0)
+                    if (Config.BottomID == 0) // Empty leaderboard - this is the first user
                     {
-                        Users.Upsert(user);
                         Config.BottomID = user.RawID;
                         Config.TopID = user.RawID;
                         UpdateConfig();
                     }
-                    else
+                    else if (Config.BottomID != user.RawID) // User needs to be added to bottom
                     {
                         UserData bottom = GetUser(Config.BottomID);
                         bottom.LeaderboardPrev = user.RawID;
-                        Users.Update(bottom);
+                        DBStoreUser(bottom);
                         user.LeaderboardNext = bottom.RawID;
-                        Users.Upsert(user);
                         Config.BottomID = user.RawID;
                         UpdateConfig();
                     }
                 }
-                else
-                {
-                    Users.Upsert(user);
-                }
+                DBStoreUser(user);
                 Reposition(user);
             }
         }
 
         /// <summary>Grants the given amount of XP to the given user.</summary>
-        public void GrantXP(UserData user, int xp)
+        public void GrantXP(UserData user, SocketGuildUser discordUser, int xp)
         {
             lock (Lock)
             {
@@ -238,19 +244,19 @@ namespace DiscordLevelsBot
                     user.PartialXP -= toNext;
                     toNext = user.CalcTotalXPToNextLevel();
                 }
-                UpdateUser(user);
+                UpdateUser(user, discordUser);
             }
         }
 
         /// <summary>If the user has earned XP, grants it and updates.</summary>
         /// <returns>True if XP was granted, false if not.</returns>
-        public bool GrantXPIfNeeded(UserData data)
+        public bool GrantXPIfNeeded(UserData user, SocketGuildUser discordUser)
         {
             lock (Lock)
             {
-                if (data.LastUpdatedTime + Config.SecondsBetweenXPTick <= CurrentTimeStamp)
+                if (user.LastUpdatedTime + Config.SecondsBetweenXPTick <= CurrentTimeStamp)
                 {
-                    GrantXP(data, Random.Next(Config.MinXPPerTick, Config.MaxXPPerTick));
+                    GrantXP(user, discordUser, Random.Next(Config.MinXPPerTick, Config.MaxXPPerTick));
                     return true;
                 }
                 return false;
