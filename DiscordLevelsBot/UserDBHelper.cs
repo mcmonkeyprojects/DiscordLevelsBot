@@ -57,7 +57,7 @@ namespace DiscordLevelsBot
 
         /// <summary>DB collection for guild configuration data.</summary>
         public ILiteCollection<GuildConfig> ConfigCollection;
-        
+
         /// <summary>The guild ID this database is for.</summary>
         public ulong Guild;
 
@@ -80,7 +80,18 @@ namespace DiscordLevelsBot
             if (Config == null)
             {
                 Config = new GuildConfig();
+                Config.Ensure();
                 ConfigCollection.Insert(0, Config);
+                UpdateConfig();
+            }
+        }
+
+        /// <summary>Updates the config file in the database.</summary>
+        public void UpdateConfig()
+        {
+            lock (Lock)
+            {
+                ConfigCollection.Upsert(0, Config);
             }
         }
 
@@ -108,6 +119,8 @@ namespace DiscordLevelsBot
                 {
                     RawID = id,
                     XP = 0,
+                    Level = 0,
+                    PartialXP = 0,
                     LastUpdatedTime = 0,
                     LeaderboardNext = 0,
                     LeaderboardPrev = 0
@@ -115,13 +128,95 @@ namespace DiscordLevelsBot
             }
         }
 
-        /// <summary>Updates the given user object in the database.</summary>
+        /// <summary>Automatically repositions a user in the leaderboard.</summary>
+        public void Reposition(UserData user)
+        {
+            lock (Lock)
+            {
+                UserData next = user.LeaderboardNext == 0 ? null : GetUser(user.LeaderboardNext);
+                if (next is null) // If we're already at the top, no position change needed
+                {
+                    return;
+                }
+                if (next.XP >= user.XP) // Only try to move if we can move at least one.
+                {
+                    return;
+                }
+                next.LeaderboardPrev = user.LeaderboardPrev;
+                Users.Update(next);
+                UserData prev = user.LeaderboardPrev == 0 ? null : GetUser(user.LeaderboardPrev);
+                if (prev is not null)
+                {
+                    prev.LeaderboardNext = user.LeaderboardNext;
+                    Users.Update(prev);
+                }
+                else // If prev is null, we were the bottom
+                {
+                    Config.BottomID = next.RawID;
+                    UpdateConfig();
+                }
+                user.LeaderboardNext = 0;
+                user.LeaderboardPrev = 0;
+                while (next.XP < user.XP)
+                {
+                    if (next.LeaderboardNext == 0)
+                    {
+                        next.LeaderboardNext = user.RawID;
+                        Users.Update(next);
+                        user.LeaderboardPrev = next.RawID;
+                        Users.Upsert(user);
+                        Config.TopID = user.RawID;
+                        UpdateConfig();
+                        return;
+                    }
+                    next = GetUser(next.LeaderboardNext);
+                }
+                ulong origPrev = next.LeaderboardPrev;
+                if (origPrev != 0)
+                {
+                    prev = GetUser(origPrev);
+                    prev.LeaderboardNext = user.RawID;
+                    Users.Update(prev);
+                    user.LeaderboardPrev = origPrev;
+                }
+                next.LeaderboardPrev = user.RawID;
+                Users.Update(next);
+                user.LeaderboardNext = next.RawID;
+                Users.Upsert(user);
+            }
+        }
+
+        /// <summary>Updates the given user object in the database, calculating leaderboard reposition if needed.</summary>
         public void UpdateUser(UserData user)
         {
             lock (Lock)
             {
+                if (user.LeaderboardNext == 0 && user.LeaderboardPrev == 0)
+                {
+                    if (Config.BottomID == 0)
+                    {
+                        Users.Upsert(user);
+                        Config.BottomID = user.RawID;
+                        Config.TopID = user.RawID;
+                        UpdateConfig();
+                    }
+                    else
+                    {
+                        UserData bottom = GetUser(Config.BottomID);
+                        bottom.LeaderboardPrev = user.RawID;
+                        Users.Update(bottom);
+                        user.LeaderboardNext = bottom.RawID;
+                        Users.Upsert(user);
+                        Config.BottomID = user.RawID;
+                        UpdateConfig();
+                    }
+                }
+                else
+                {
+                    Users.Upsert(user);
+                }
+                Reposition(user);
             }
-#warning TODO
         }
 
         /// <summary>Grants the given amount of XP to the given user.</summary>
@@ -134,7 +229,15 @@ namespace DiscordLevelsBot
                     throw new ArgumentException($"XP {xp} is invalid: must be > 0", nameof(xp));
                 }
                 user.XP += xp;
+                user.PartialXP += xp;
                 user.LastUpdatedTime = CurrentTimeStamp;
+                long toNext = user.CalcTotalXPToNextLevel();
+                while (user.PartialXP >= toNext)
+                {
+                    user.Level++;
+                    user.PartialXP -= toNext;
+                    toNext = user.CalcTotalXPToNextLevel();
+                }
                 UpdateUser(user);
             }
         }

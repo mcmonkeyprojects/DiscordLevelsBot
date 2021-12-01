@@ -17,5 +17,42 @@ namespace DiscordLevelsBot
 
         /// <summary>Minimum amount of time between messages before a user receives more XP.</summary>
         public int SecondsBetweenXPTick { get; set; } = 60;
+
+        /// <summary>The ID of the top user.</summary>
+        public ulong TopID { get; set; } = 0;
+
+        /// <summary>The ID of the bottom user.</summary>
+        public ulong BottomID { get; set; } = 0;
+
+        /// <summary>The lowest level that is allowed to show level-up notifications.</summary>
+        public int MinimumLevelForNotif { get; set; } = 5;
+
+        /// <summary>A set of channel IDs forbidden from receiving XP.</summary>
+        public HashSet<ulong> RestrictedChannels { get; set; }
+
+        public List<LevelUpReward> LevelRewards { get; set; }
+
+        /// <summary>Represents a single reward given for leveling up.</summary>
+        public class LevelUpReward
+        {
+            /// <summary>Level that when reached grants the reward.</summary>
+            public int Level { get; set; }
+
+            /// <summary>Role ID to grant.</summary>
+            public ulong Role { get; set; }
+        }
+
+        /// <summary>Ensures all lists are initialized.</summary>
+        public void Ensure()
+        {
+            if (RestrictedChannels is null)
+            {
+                RestrictedChannels = new HashSet<ulong>();
+            }
+            if (LevelRewards is null)
+            {
+                LevelRewards = new List<LevelUpReward>();
+            }
+        }
     }
 }

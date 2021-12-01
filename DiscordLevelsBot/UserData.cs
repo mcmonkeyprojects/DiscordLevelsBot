@@ -11,7 +11,7 @@ namespace DiscordLevelsBot
     public class UserData
     {
         /// <summary>The internal raw user ID.</summary>
-        public ulong RawID;
+        public ulong RawID = 0;
 
         /// <summary>The ID reformatted for LiteDB.</summary>
         [BsonId]
@@ -25,15 +25,24 @@ namespace DiscordLevelsBot
         }
 
         /// <summary>Total experience for this user.</summary>
-        public long XP { get; set; }
+        public long XP { get; set; } = 0;
+
+        /// <summary>User's current level.</summary>
+        public long Level { get; set; } = 0;
+
+        /// <summary>Current XP towards the next level.</summary>
+        public long PartialXP { get; set; } = 0;
+
+        /// <summary>Calculates the XP needed to reach the next level.</summary>
+        public long CalcTotalXPToNextLevel() => (5 * (Level * Level)) + (50 * Level) + 100;
 
         /// <summary>Unix 64-bit seconds timestamp of the last time the user received XP.</summary>
-        public long LastUpdatedTime { get; set; }
+        public long LastUpdatedTime { get; set; } = 0;
 
         /// <summary>The next (higher) person on the leaderboard (or 0 if on top).</summary>
-        public ulong LeaderboardNext { get; set; }
+        public ulong LeaderboardNext { get; set; } = 0;
 
         /// <summary>The next (lower) person on the leaderboard (or 0 if on bottom).</summary>
-        public ulong LeaderboardPrev { get; set; }
+        public ulong LeaderboardPrev { get; set; } = 0;
     }
 }
