@@ -45,11 +45,13 @@ namespace DiscordLevelsBot
                 nextUser = database.GetUser(nextUser.LeaderboardNext);
                 ranking++;
             }
+            TimeSpan seenOffset = lastSeen - DateTimeOffset.UtcNow;
+            string seen = seenOffset.TotalMinutes < 2 ? "Now" : $"`{lastSeen:yyyy/MM/dd HH:mm:ss} UTC` ... `{seenOffset.SimpleFormat(true)}`";
             return new EmbedBuilder().WithTitle($"Rank For {name}").WithThumbnailUrl(user.LastKnownAvatar)
                 .AddField("User", $"<@{user.RawID}>", true)
                 .AddField("Last Known Name", $"`{(string.IsNullOrWhiteSpace(name) ? "N/A" : name)}`", true)
                 .AddField("Rank", $"**{ranking}**", true)
-                .AddField("Last Seen", $"`{StringConversionHelper.DateTimeToString(lastSeen, false)}` ... `{(lastSeen - DateTimeOffset.UtcNow).SimpleFormat(true)}`")
+                .AddField("Last Seen", seen)
                 .AddField("Total XP", $"{user.XP}", true)
                 .AddField("Current Level", $"{user.Level}", true)
                 .AddField("XP To Next Level", $"{user.PartialXP} / {user.CalcTotalXPToNextLevel()}", true)
