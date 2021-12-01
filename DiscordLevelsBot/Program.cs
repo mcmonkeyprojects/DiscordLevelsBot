@@ -158,7 +158,7 @@ namespace DiscordLevelsBot
                 UserDBHelper database = UserDBHelper.GetDBForGuild(id);
                 string[] lines = File.ReadAllLines("config/import_data.txt");
                 ulong fakeID = 100;
-                int real = 0, alt = 0, fake = 0;
+                int real = 0, alt = 0, fake = 0, dups = 0;
                 StringBuilder outputFail = new();
                 foreach (string line in lines)
                 {
@@ -210,6 +210,11 @@ namespace DiscordLevelsBot
                         }
                     }
                     UserData user = database.GetUser(userID);
+                    if (user.XP != 0)
+                    {
+                        dups++;
+                        continue;
+                    }
                     if (user.LeaderboardNext != 0)
                     {
                         UserData next = database.GetUser(user.LeaderboardNext);
@@ -237,7 +242,7 @@ namespace DiscordLevelsBot
                     database.UpdateUser(user, null);
                 }
                 File.WriteAllText("config/fail_log.txt", outputFail.ToString());
-                Console.WriteLine($"Updated {real} users correctly, {alt} from alternate sourcing, and {fake} users wrongly");
+                Console.WriteLine($"Updated {real} users correctly, {dups} duplicates ignored, {alt} from alternate sourcing, and {fake} users wrongly");
             }
             catch (Exception ex)
             {
