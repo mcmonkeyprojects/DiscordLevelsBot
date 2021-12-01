@@ -9,6 +9,8 @@ using DiscordBotBase;
 using Discord.WebSocket;
 using DiscordBotBase.CommandHandlers;
 using Discord;
+using System.Threading;
+using FreneticUtilities.FreneticExtensions;
 
 namespace DiscordLevelsBot
 {
@@ -16,6 +18,14 @@ namespace DiscordLevelsBot
     {
         public static void Main(string[] args)
         {
+            AssemblyLoadContext.Default.Unloading += (context) =>
+            {
+                UserDBHelper.Shutdown();
+            };
+            AppDomain.CurrentDomain.ProcessExit += (obj, e) =>
+            {
+                UserDBHelper.Shutdown();
+            };
             if (!Directory.Exists("./saves"))
             {
                 Directory.CreateDirectory("./saves");
@@ -25,22 +35,52 @@ namespace DiscordLevelsBot
                 CacheSize = 0,
                 EnsureCaching = false,
                 Initialize = Initialize,
-                OnShutdown = UserDBHelper.Shutdown
+                OnShutdown = () =>
+                {
+                    ConsoleCancelToken.Cancel();
+                    UserDBHelper.Shutdown();
+                }
             };
-            AssemblyLoadContext.Default.Unloading += (context) =>
-            {
-                UserDBHelper.Shutdown();
-            };
-            AppDomain.CurrentDomain.ProcessExit += (obj, e) =>
-            {
-                UserDBHelper.Shutdown();
-            };
+            Task consoleThread = Task.Run(ConsoleLoop, ConsoleCancelToken.Token);
             DiscordBotBaseHelper.StartBotHandler(args, config);
         }
+
+        public static CancellationTokenSource ConsoleCancelToken = new();
 
         public static void Initialize(DiscordBot bot)
         {
             bot.Client.MessageReceived += Client_MessageReceived;
+        }
+
+        public static async void ConsoleLoop()
+        {
+            while (true)
+            {
+                string line = await Console.In.ReadLineAsync();
+                if (line == null)
+                {
+                    return;
+                }
+                string[] split = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (split.IsEmpty())
+                {
+                    continue;
+                }
+                switch (split[0])
+                {
+                    case "stop":
+                        {
+                            Console.WriteLine("Clearing up...");
+                            UserDBHelper.Shutdown();
+                            Console.WriteLine("Shutting down...");
+                            Environment.Exit(0);
+                        }
+                        break;
+                    default:
+                        Console.WriteLine("Unknown command.");
+                        break;
+                }
+            }
         }
 
         public static async Task Client_MessageReceived(SocketMessage message)

@@ -3,15 +3,23 @@ DiscordLevelsBot
 
 A simple bot for activity tracking / leveling on Discord. Inspired by Mee6. Designed for more customization (for my own needs at least) and to not have all the unrelated Mee6 features in the way (especially not the whole 'premium' thing yknow).
 
-### Setup
+### Want To Add The Public Instance?
+
+- Just [click here](https://discord.com/api/oauth2/authorize?client_id=915501392519651358&permissions=2415922176&scope=bot%20applications.commands).
+
+### Admin Configuration
+
+- TODO
+
+### Setup Your Own Instance
 
 - 0: Before setup: This is intended to run on a Linux server, with `git`, `screen`, and `dotnet` (6.0) installed. If you're not in this environment... you're on your own for making it work. Should be easy, but I'm only documenting my own use case here.
 - 1: Clone this repo with `git clone`
 - 2: Make sure to checkout submodules as well: `git submodule update --init --recursive` (the `start.sh` will automatically do this for you)
-- 2: create folder `config` at top level
-- 3: You need to have a Discord bot already - check [this guide](https://discordpy.readthedocs.io/en/stable/discord.html) if you don't know how to get one
-- 4: within `config` create file `token.txt` with contents being your Discord bot's token
-- 5: `./start.sh`. Will run in a screen which you can attach to with `screen -r levelsbot`
+- 3: create folder `config` at top level
+- 4: You need to have a Discord bot already - check [this guide](https://discordpy.readthedocs.io/en/stable/discord.html) if you don't know how to get one. Requires messages intent, and slash commands grant. Make sure to add the bot to your server(s).
+- 5: within `config` create file `token.txt` with contents being your Discord bot's token
+- 6: `./start.sh`. Will run in a screen which you can attach to with `screen -r levelsbot`
 
 ### Licensing pre-note:
 
