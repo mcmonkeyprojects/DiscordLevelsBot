@@ -48,7 +48,7 @@ namespace DiscordLevelsBot
                 .AddField("User", $"<@{user.RawID}>", true)
                 .AddField("Last Known Name", $"`{(string.IsNullOrWhiteSpace(name) ? "N/A" : name)}`", true)
                 .AddField("Rank", $"**{ranking}**", true);
-            if (user.LastUpdatedTime != 0 && Math.Abs(UserDBHelper.CurrentTimeStamp - user.LastUpdatedTime) > 2)
+            if (user.LastUpdatedTime != 0 && Math.Abs(UserDBHelper.CurrentTimeStamp - user.LastUpdatedTime) > (2 * 60))
             {
                 builder.AddField("Last Seen", $"<t:{user.LastUpdatedTime}> ... <t:{user.LastUpdatedTime}:R>");
             }
