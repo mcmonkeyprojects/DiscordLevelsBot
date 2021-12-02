@@ -89,17 +89,32 @@ namespace DiscordLevelsBot
                         }
                         break;
                     case "import":
-                        if (split.Length == 2 && ulong.TryParse(split[1], out ulong guildId))
+                        if (split.Length == 2 && ulong.TryParse(split[1], out ulong importGuildId))
                         {
-                            DataImport(guildId);
+                            DataImport(importGuildId);
                         }
                         else
                         {
                             Console.WriteLine("import (guild_id)");
                         }
                         break;
+                    case "reset_all_seen_times":
+                        if (split.Length == 2 && ulong.TryParse(split[1], out ulong resetGuildId))
+                        {
+                            UserDBHelper database = UserDBHelper.GetDBForGuild(resetGuildId);
+                            foreach (UserData user in database.Users.FindAll())
+                            {
+                                user.LastUpdatedTime = 0;
+                                database.DBStoreUser(user);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("reset_all_seen_times (guild_id)");
+                        }
+                        break;
                     default:
-                        Console.WriteLine("Unknown command.");
+                        Console.WriteLine("Unknown command. Use 'stop' to close the process, or consult internal code for secondary options.");
                         break;
                 }
             }
