@@ -17,7 +17,7 @@ By default, when a user posts a message (at least one minute after their last me
 
 ### Setup Your Own Instance
 
-- 0: Before setup: This is intended to run on a Linux server, with `git`, `screen`, and `dotnet` (6.0) installed. If you're not in this environment... you're on your own for making it work. Should be easy, but I'm only documenting my own use case here.
+- 0: Before setup: This is intended to run on a Linux server, with `git`, `screen`, and `dotnet-6-sdk` installed. If you're not in this environment... you're on your own for making it work. Should be easy, but I'm only documenting my own use case here.
 - 1: Clone this repo with `git clone`
 - 2: Make sure to checkout submodules as well: `git submodule update --init --recursive` (the `start.sh` will automatically do this for you)
 - 3: create folder `config` at top level

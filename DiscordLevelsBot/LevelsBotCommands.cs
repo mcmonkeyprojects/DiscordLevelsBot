@@ -52,7 +52,7 @@ namespace DiscordLevelsBot
             {
                 builder.AddField("Last Seen", $"<t:{user.LastUpdatedTime}> ... <t:{user.LastUpdatedTime}:R>");
             }
-            builder.AddField("Total XP", $"{user.XP}", true)
+            builder.AddField("Total XP", $"{user.XP:n0}", true)
                 .AddField("Current Level", $"{user.Level}", true)
                 .AddField("XP To Next Level", $"{user.PartialXP} / {user.CalcTotalXPToNextLevel()}", true)
                 .WithColor(0, 255, 128);
@@ -90,7 +90,7 @@ namespace DiscordLevelsBot
         public static void AddUserToBoard(StringBuilder output, int index, UserData user)
         {
             string name = NameSimplifier.TrimToMatches(user.LastKnownName);
-            output.Append($"**Rank {index}:** <@{user.RawID}> (`{(string.IsNullOrWhiteSpace(name) ? "N/A" : name)}`): Level: **{user.Level}**, Total XP: **{user.XP}**\n");
+            output.Append($"**Rank {index}:** <@{user.RawID}> (`{(string.IsNullOrWhiteSpace(name) ? "N/A" : name)}`): Level: **{user.Level}**, Total XP: **{user.XP:n0}**\n");
         }
 
         /// <summary>Builds a leaderboard embed message.</summary>

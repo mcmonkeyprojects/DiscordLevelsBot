@@ -11,6 +11,7 @@ using DiscordBotBase.CommandHandlers;
 using Discord;
 using System.Threading;
 using FreneticUtilities.FreneticExtensions;
+using FreneticUtilities.FreneticToolkit;
 
 namespace DiscordLevelsBot
 {
@@ -18,6 +19,7 @@ namespace DiscordLevelsBot
     {
         public static void Main(string[] args)
         {
+            SpecialTools.Internationalize();
             AssemblyLoadContext.Default.Unloading += (context) =>
             {
                 UserDBHelper.Shutdown();
