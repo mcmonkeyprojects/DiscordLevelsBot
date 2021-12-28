@@ -311,7 +311,12 @@ namespace DiscordLevelsBot
                 return;
             }
             UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
-            if (database.Config.RestrictedChannels.Contains(channel.Id))
+            ulong chanId = channel.Id;
+            if (channel is SocketThreadChannel threadChannel)
+            {
+                chanId = threadChannel.ParentChannel.Id;
+            }
+            if (database.Config.RestrictedChannels.Contains(chanId))
             {
                 return;
             }
