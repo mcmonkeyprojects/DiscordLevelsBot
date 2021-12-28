@@ -108,7 +108,6 @@ namespace DiscordLevelsBot
                 return;
             }
             SendReply(command, BuildRankEmbedFor(database, user));
-#warning TODO
         }
 
         /// <summary>Adds a single user to a leaderboard embed message.</summary>
