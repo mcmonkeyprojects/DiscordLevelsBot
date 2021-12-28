@@ -86,6 +86,31 @@ namespace DiscordLevelsBot
             SendReply(command.Message, BuildRankEmbedFor(database, user));
         }
 
+        /// <summary>A command for users to show their own current rank, or somebody else's.</summary>
+        public static void SlashCommand_Rank(SocketSlashCommand command)
+        {
+            command.DeferAsync().Wait();
+            IGuildChannel channel = (command.Channel as IGuildChannel);
+            ulong userId = command.User.Id;
+            if (command.Data.Options.Count == 1)
+            {
+                SocketSlashCommandDataOption option = command.Data.Options.First();
+                if (option.Type == ApplicationCommandOptionType.User && option.Value is IUser newUser)
+                {
+                    userId = newUser.Id;
+                }
+            }
+            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
+            UserData user = database.GetUser(userId);
+            if (user is null || user.XP == 0)
+            {
+                SendGenericNegativeMessageReply(command, "Unknown User", "User is unknown, or has never received any XP.");
+                return;
+            }
+            SendReply(command, BuildRankEmbedFor(database, user));
+#warning TODO
+        }
+
         /// <summary>Adds a single user to a leaderboard embed message.</summary>
         public static void AddUserToBoard(StringBuilder output, int index, UserData user)
         {
@@ -94,7 +119,7 @@ namespace DiscordLevelsBot
         }
 
         /// <summary>Builds a leaderboard embed message.</summary>
-        public static Embed BuildBoardEmbed(int start, SocketGuild guild, UserDBHelper database)
+        public static Embed BuildBoardEmbed(int start, IGuild guild, UserDBHelper database)
         {
             int rank = 0;
             StringBuilder output = new();
@@ -124,7 +149,7 @@ namespace DiscordLevelsBot
                 return;
             }
             int start = 1;
-            if (command.CleanedArguments.Length == 1 && int.TryParse(command.CleanedArguments[0], out int newStart))
+            if (command.CleanedArguments.Length == 1 && int.TryParse(command.CleanedArguments[0], out int newStart) && newStart > 0)
             {
                 start = newStart;
             }
@@ -135,6 +160,28 @@ namespace DiscordLevelsBot
                 return;
             }
             SendReply(command.Message, BuildBoardEmbed(start, channel.Guild, database));
+        }
+
+        /// <summary>A command to show a guild-wide leaderboard.</summary>
+        public static void SlashCommand_Leaderboard(SocketSlashCommand command)
+        {
+            command.DeferAsync().Wait();
+            int start = 1;
+            if (command.Data.Options.Count == 1)
+            {
+                SocketSlashCommandDataOption option = command.Data.Options.First();
+                if (option.Type == ApplicationCommandOptionType.Integer && option.Value is int newStart && newStart > 0)
+                {
+                    start = newStart;
+                }
+            }
+            UserDBHelper database = UserDBHelper.GetDBForGuild((command.Channel as IGuildChannel).Guild.Id);
+            if (database.Config.TopID == 0)
+            {
+                SendGenericNegativeMessageReply(command, "Error", "Empty database");
+                return;
+            }
+            SendReply(command, BuildBoardEmbed(start, (command.Channel as IGuildChannel).Guild, database));
         }
 
         /// <summary>A command to configure guild settings.</summary>

@@ -59,11 +59,36 @@ namespace DiscordLevelsBot
             bot.Client.Ready += async () =>
             {
                 await bot.Client.SetGameAsync("for new level ups to grant", type: ActivityType.Watching);
+                try
+                {
+                    const string commandVersionFile = "./config/command_registered_version.dat";
+                    const int commandVersion = 1;
+                    if (!File.Exists(commandVersionFile) || !int.TryParse(commandVersionFile, out int registered) || registered < commandVersion)
+                    {
+                        RegisterSlashCommands(bot);
+                        File.WriteAllText(commandVersionFile, commandVersion.ToString());
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to update slash commands: {ex}");
+                }
             };
             bot.RegisterCommand(LevelsBotCommands.Command_Help, "help", "halp", "hlp", "?");
             bot.RegisterCommand(LevelsBotCommands.Command_Rank, "rank", "level", "xp", "exp", "experience", "levelup");
             bot.RegisterCommand(LevelsBotCommands.Command_Leaderboard, "leaderboard", "board", "leaders", "top");
             bot.RegisterCommand(LevelsBotCommands.Command_AdminConfigure, "admin-configure", "adminconfigure");
+            bot.RegisterSlashCommand(LevelsBotCommands.SlashCommand_Rank, "rank");
+            bot.RegisterSlashCommand(LevelsBotCommands.SlashCommand_Leaderboard, "leaderboard");
+        }
+
+        public static void RegisterSlashCommands(DiscordBot bot)
+        {
+            SlashCommandBuilder rankComamnd = new SlashCommandBuilder().WithName("rank").WithDescription("Shows your current leveling rank and XP, or somebody else's.")
+                .AddOption("user", ApplicationCommandOptionType.User, "(Optional) A different user to show the leveling info of.", isRequired: false);
+            SlashCommandBuilder leaderboardCommand = new SlashCommandBuilder().WithName("leaderboard").WithDescription("Shows the whole leveling leaderboard for this Discord group.")
+                .AddOption("start", ApplicationCommandOptionType.Integer, "(Optional) alternate index to start the board at (eg start at 11 to show ranks 11-20).", isRequired: false);
+            bot.Client.BulkOverwriteGlobalApplicationCommandsAsync(new ApplicationCommandProperties[] { rankComamnd.Build(), leaderboardCommand.Build() });
         }
 
         public static async void ConsoleLoop()
