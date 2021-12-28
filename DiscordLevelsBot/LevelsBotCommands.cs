@@ -166,14 +166,17 @@ namespace DiscordLevelsBot
         {
             command.DeferAsync().Wait();
             int start = 1;
-            Console.WriteLine($"Leaderboard command: {command.Data.Options.Count} options input");
             if (command.Data.Options.Count == 1)
             {
                 SocketSlashCommandDataOption option = command.Data.Options.First();
-                Console.WriteLine($"Leaderboard command first option {option.Type} has {option.Value} is {option.Value.GetType().Name}");
                 if (option.Type == ApplicationCommandOptionType.Integer && option.Value is int newStart && newStart > 0)
                 {
                     start = newStart;
+                }
+                // Note: docs say Integer value is 'int', but actual value in practice appears to be a long.
+                else if (option.Type == ApplicationCommandOptionType.Integer && option.Value is long newStartLong && newStartLong > 0 && newStartLong < int.MaxValue)
+                {
+                    start = (int)newStartLong;
                 }
             }
             UserDBHelper database = UserDBHelper.GetDBForGuild((command.Channel as IGuildChannel).Guild.Id);
