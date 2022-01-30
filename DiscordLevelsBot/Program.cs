@@ -56,9 +56,9 @@ namespace DiscordLevelsBot
         public static void Initialize(DiscordBot bot)
         {
             bot.Client.MessageReceived += Client_MessageReceived;
-            bot.Client.Ready += async () =>
+            bot.Client.Ready += () =>
             {
-                await bot.Client.SetGameAsync("for new level ups to grant", type: ActivityType.Watching);
+                bot.Client.SetGameAsync("for new level ups to grant", type: ActivityType.Watching).Wait();
                 try
                 {
                     const string commandVersionFile = "./config/command_registered_version.dat";
@@ -73,6 +73,18 @@ namespace DiscordLevelsBot
                 {
                     Console.Error.WriteLine($"Failed to update slash commands: {ex}");
                 }
+                return Task.CompletedTask;
+            };
+            bot.Client.UserJoined += (discordUser) =>
+            {
+                UserDBHelper database = UserDBHelper.GetDBForGuild(discordUser.Guild.Id);
+                UserData user;
+                lock (database.Lock)
+                {
+                    user = database.GetUser(discordUser.Id);
+                }
+                CheckRewards(database, user, discordUser);
+                return Task.CompletedTask;
             };
             bot.RegisterCommand(LevelsBotCommands.Command_Help, "help", "halp", "hlp", "?");
             bot.RegisterCommand(LevelsBotCommands.Command_Rank, "rank", "level", "xp", "exp", "experience", "levelup");
@@ -292,23 +304,23 @@ namespace DiscordLevelsBot
             }
         }
 
-        public static async Task Client_MessageReceived(SocketMessage message)
+        public static Task Client_MessageReceived(SocketMessage message)
         {
             if (message.Author.IsBot || message.Author.IsWebhook)
             {
-                return;
+                return Task.CompletedTask;
             }
             if (message is not IUserMessage userMessage)
             {
-                return;
+                return Task.CompletedTask;
             }
             if (message.Channel is not SocketTextChannel channel)
             {
-                return;
+                return Task.CompletedTask;
             }
             if (message.Author is not SocketGuildUser author)
             {
-                return;
+                return Task.CompletedTask;
             }
             UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
             ulong chanId = channel.Id;
@@ -318,7 +330,7 @@ namespace DiscordLevelsBot
             }
             if (database.Config.RestrictedChannels.Contains(chanId))
             {
-                return;
+                return Task.CompletedTask;
             }
             bool didGrantAny;
             long origLevel;
@@ -333,24 +345,7 @@ namespace DiscordLevelsBot
                 }
                 if (didGrantAny && user.Level > origLevel)
                 {
-                    IReadOnlyCollection<SocketRole> roles = author.Roles;
-                    foreach (GuildConfig.LevelUpReward reward in database.Config.LevelRewards)
-                    {
-                        if (user.Level >= reward.Level)
-                        {
-                            if (!roles.Any(r => r.Id == reward.Role))
-                            {
-                                try
-                                {
-                                    await author.AddRoleAsync(reward.Role);
-                                }
-                                catch (Exception ex)
-                                {
-                                    Console.Error.WriteLine($"Failed to add role {reward.Role} to user {user.RawID} in guild {database.Guild}: {ex}");
-                                }
-                            }
-                        }
-                    }
+                    CheckRewards(database, user, author);
                     if (user.Level >= database.Config.MinimumLevelForNotif)
                     {
                         UserCommands.SendReply(userMessage, new EmbedBuilder().WithTitle("Level up!").WithDescription($"Congratulations <@{user.RawID}>! You're now at **level {user.Level}**!")
@@ -362,6 +357,29 @@ namespace DiscordLevelsBot
             catch (Exception ex)
             {
                 Console.Error.WriteLine($"Error while doing XP grant check: {ex}");
+            }
+            return Task.CompletedTask;
+        }
+
+        public static void CheckRewards(UserDBHelper database, UserData user, SocketGuildUser discordUser)
+        {
+            IReadOnlyCollection<SocketRole> roles = discordUser.Roles;
+            foreach (GuildConfig.LevelUpReward reward in database.Config.LevelRewards)
+            {
+                if (user.Level >= reward.Level)
+                {
+                    if (!roles.Any(r => r.Id == reward.Role))
+                    {
+                        try
+                        {
+                            discordUser.AddRoleAsync(reward.Role).Wait();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine($"Failed to add role {reward.Role} to user {user.RawID} in guild {database.Guild}: {ex}");
+                        }
+                    }
+                }
             }
         }
     }
