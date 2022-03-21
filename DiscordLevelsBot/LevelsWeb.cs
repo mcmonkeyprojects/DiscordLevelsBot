@@ -30,7 +30,7 @@ namespace DiscordLevelsBot
         public static long CacheMillis = 30 * 60 * 1000;
 
         /// <summary>Max leaderboard entries per page - default 1000.</summary>
-        public static int MaxPerPage = 2000;
+        public static int MaxPerPage = 3000;
 
         public static MicroWebHelper.InjectableHtml GetInjectable(string path)
         {
@@ -95,15 +95,15 @@ namespace DiscordLevelsBot
 
         public static string[] RankColors = new[] { "bg-warning", "bg-light", "bg-primary" };
 
-        public static string GetBoardEntry(int rank, UserData data)
+        public static void GetBoardEntry(StringBuilder output, int rank, UserData data)
         {
             int width = rank < 5 ? 128 : (rank < 20 ? 64 : (rank < 30 ? 48 : 32));
             string rankColor = rank > 3 ? "bg-dark" : RankColors[rank - 1];
-            string badge = $"<th scope=\"row\"><span class=\"badge rounded-pill {rankColor}\" style=\"font-size:{(width/2)}px;\">{rank}</span></th>";
-            string avatar = string.IsNullOrWhiteSpace(data.LastKnownAvatar) ? "<td>?</td>" : $"<td><img src=\"{data.LastKnownAvatar}?size={width}\" width=\"{width}\"></td>";
-            string name = string.IsNullOrWhiteSpace(data.LastKnownName) ? $"<td>{data.RawID}</td>" : $"<td><abbr title=\"{data.RawID}\">{MicroWebHelper.HtmlEscape(data.LastKnownName)}</abbr></td>";
-            string xp = $"<td><b>{data.Level}</b></td><td><b>{data.XP}</b> Total, <b>{data.PartialXP}</b>/<b>{data.CalcTotalXPToNextLevel()}</b> towards next level</td>";
-            return $"<tr class=\"table-secondary\">{badge}{avatar}{name}{xp}</tr>\n";
+            output.Append("<tr class=\"table-secondary\">")
+                .Append($"<th scope=\"row\"><span class=\"badge rounded-pill {rankColor}\" style=\"font-size:{(width / 2)}px;\">{rank}</span></th>")
+                .Append(string.IsNullOrWhiteSpace(data.LastKnownAvatar) ? "<td>?</td>" : $"<td><img src=\"{data.LastKnownAvatar}?size={width}\" width=\"{width}\"></td>")
+                .Append(string.IsNullOrWhiteSpace(data.LastKnownName) ? $"<td>{data.RawID}</td>" : $"<td><abbr title=\"{data.RawID}\">{MicroWebHelper.HtmlEscape(data.LastKnownName)}</abbr></td>")
+                .Append($"<td><b>{data.Level}</b></td><td><b>{data.XP}</b> Total, <b>{data.PartialXP}</b>/<b>{data.CalcTotalXPToNextLevel()}</b> towards next level</td>");
         }
         
         public static MicroWebHelper.WebResult GetPage(string url, HttpListenerContext context)
@@ -138,7 +138,7 @@ namespace DiscordLevelsBot
                         while (current != null)
                         {
                             rank++;
-                            output.Append(GetBoardEntry(rank, current));
+                            GetBoardEntry(output, rank, current);
                             if (rank >= MaxPerPage)
                             {
                                 break;
