@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using DiscordBotBase.CommandHandlers;
 using Discord;
 using System.Threading;
+using FreneticUtilities.FreneticDataSyntax;
 using FreneticUtilities.FreneticExtensions;
 using FreneticUtilities.FreneticToolkit;
 
@@ -22,11 +23,11 @@ namespace DiscordLevelsBot
             SpecialTools.Internationalize();
             AssemblyLoadContext.Default.Unloading += (context) =>
             {
-                UserDBHelper.Shutdown();
+                Shutdown();
             };
             AppDomain.CurrentDomain.ProcessExit += (obj, e) =>
             {
-                UserDBHelper.Shutdown();
+                Shutdown();
             };
             if (!Directory.Exists("./saves"))
             {
@@ -41,12 +42,21 @@ namespace DiscordLevelsBot
                 ShouldPayAttentionToMessage = (message) => message is SocketUserMessage uMessage && uMessage.Channel is SocketGuildChannel,
                 OnShutdown = () =>
                 {
-                    ConsoleCancelToken.Cancel();
-                    UserDBHelper.Shutdown();
+                    Shutdown();
                 }
             };
             Task consoleThread = Task.Run(ConsoleLoop, ConsoleCancelToken.Token);
             DiscordBotBaseHelper.StartBotHandler(args, config);
+        }
+
+        public static void Shutdown()
+        {
+            ConsoleCancelToken.Cancel();
+            UserDBHelper.Shutdown();
+            if (LevelsWeb.WebHelper is not null)
+            {
+                LevelsWeb.WebHelper.Cancel();
+            }
         }
 
         public static long XPToNextLevelFrom(long level) => (5 * (level * level)) + (50 * level) + 100;
@@ -55,10 +65,24 @@ namespace DiscordLevelsBot
 
         public static void Initialize(DiscordBot bot)
         {
+            if (bot.ConfigFile is not null)
+            {
+                FDSSection webpage = bot.ConfigFile.GetSection("webpage");
+                if (webpage is not null && webpage.GetBool("enable", false).Value)
+                {
+                    LevelsWeb.WebHelper = new(webpage.GetString("listen"), LevelsWeb.GetPage);
+                    LevelsWeb.WebURL = webpage.GetString("address");
+                    LevelsWeb.Load();
+                }
+            }
             bot.Client.MessageReceived += Client_MessageReceived;
             bot.Client.Ready += () =>
             {
                 bot.Client.SetGameAsync("for new level ups to grant", type: ActivityType.Watching).Wait();
+                foreach (SocketGuild guild in bot.Client.Guilds)
+                {
+                    UserDBHelper.GetDBForGuild(guild); // Preload
+                }
                 try
                 {
                     const string commandVersionFile = "./config/command_registered_version.dat";
@@ -77,7 +101,7 @@ namespace DiscordLevelsBot
             };
             bot.Client.UserJoined += (discordUser) =>
             {
-                UserDBHelper database = UserDBHelper.GetDBForGuild(discordUser.Guild.Id);
+                UserDBHelper database = UserDBHelper.GetDBForGuild(discordUser.Guild);
                 UserData user;
                 lock (database.Lock)
                 {
@@ -140,7 +164,7 @@ namespace DiscordLevelsBot
                     case "reset_all_seen_times":
                         if (split.Length == 2 && ulong.TryParse(split[1], out ulong resetGuildId))
                         {
-                            UserDBHelper database = UserDBHelper.GetDBForGuild(resetGuildId);
+                            UserDBHelper database = UserDBHelper.GetDBForGuild(resetGuildId, "");
                             foreach (UserData user in database.Users.FindAll())
                             {
                                 user.LastUpdatedTime = 0;
@@ -209,7 +233,7 @@ namespace DiscordLevelsBot
                 {
                     altNameLookup[LevelsBotCommands.NameSimplifier.TrimToMatches(user.Username.ToLowerFast())] = user.Id;
                 }
-                UserDBHelper database = UserDBHelper.GetDBForGuild(id);
+                UserDBHelper database = UserDBHelper.GetDBForGuild(id, "imported");
                 string[] lines = File.ReadAllLines("config/import_data.txt");
                 ulong fakeID = 100;
                 int real = 0, alt = 0, fake = 0, dups = 0;
@@ -322,7 +346,7 @@ namespace DiscordLevelsBot
             {
                 return Task.CompletedTask;
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild);
             ulong chanId = channel.Id;
             if (channel is SocketThreadChannel threadChannel)
             {

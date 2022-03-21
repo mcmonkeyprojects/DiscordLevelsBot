@@ -76,7 +76,7 @@ namespace DiscordLevelsBot
                 SendGenericNegativeMessageReply(command.Message, "Invalid Input", "Give no input, or a user ID or @ mention. Any other input won't work.");
                 return;
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild);
             UserData user = database.GetUser(userId);
             if (user is null || user.XP == 0)
             {
@@ -100,7 +100,7 @@ namespace DiscordLevelsBot
                     userId = newUser.Id;
                 }
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild);
             UserData user = database.GetUser(userId);
             if (user is null || user.XP == 0)
             {
@@ -122,6 +122,10 @@ namespace DiscordLevelsBot
         {
             int rank = 0;
             StringBuilder output = new();
+            if (LevelsWeb.WebHelper is not null && LevelsWeb.WebURL is not null)
+            {
+                output.Append($"[Click To View Full Leaderboard Online]({LevelsWeb.WebURL}leaderboard/{guild.Id})\n\n");
+            }
             UserData current = database.GetUser(database.Config.TopID);
             while (current != null)
             {
@@ -152,7 +156,7 @@ namespace DiscordLevelsBot
             {
                 start = newStart;
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild(channel.Guild);
             if (database.Config.TopID == 0)
             {
                 SendGenericNegativeMessageReply(command.Message, "Error", "Empty database");
@@ -179,7 +183,7 @@ namespace DiscordLevelsBot
                     start = (int)newStartLong;
                 }
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild((command.Channel as IGuildChannel).Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild((command.Channel as IGuildChannel).Guild);
             if (database.Config.TopID == 0)
             {
                 SendGenericNegativeMessageReply(command, "Error", "Empty database");
@@ -200,7 +204,7 @@ namespace DiscordLevelsBot
                 SendGenericNegativeMessageReply(command.Message, "Access Denied", "Only the discord owner, or members with the Admin privilege, may use the admin-configure command.");
                 return;
             }
-            UserDBHelper database = UserDBHelper.GetDBForGuild(user.Guild.Id);
+            UserDBHelper database = UserDBHelper.GetDBForGuild(user.Guild);
             if (command.CleanedArguments.Length == 2 && command.CleanedArguments[0] == "restrict_channel" && ulong.TryParse(command.CleanedArguments[1], out ulong restrictChanId))
             {
                 database.Config.RestrictedChannels.Add(restrictChanId);

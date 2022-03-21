@@ -37,19 +37,29 @@ namespace DiscordLevelsBot
             DatabaseByGuild.Clear();
         }
 
+        /// <summary>Gets the database object for a given guild object, or creates one if needed.</summary>
+        public static UserDBHelper GetDBForGuild(IGuild guild)
+        {
+            return GetDBForGuild(guild.Id, guild.Name);
+        }
+
         /// <summary>Gets the database object for a given guild ID, or creates one if needed.</summary>
-        public static UserDBHelper GetDBForGuild(ulong guild)
+        public static UserDBHelper GetDBForGuild(ulong guild, string name)
         {
             return DatabaseByGuild.GetOrAdd(guild, (id) =>
             {
                 UserDBHelper created = new()
                 {
                     Guild = id,
+                    Name = name,
                 };
                 created.Init();
                 return created;
             });
         }
+
+        /// <summary>The guild's name.</summary>
+        public string Name;
 
         /// <summary>The raw database instance.</summary>
         public LiteDatabase Database;

@@ -5,6 +5,8 @@ A simple bot for activity tracking / leveling on Discord. Inspired by Mee6. Desi
 
 By default, when a user posts a message (at least one minute after their last message), they get a random bit of XP from 15 to 25 points. This XP is used to obtain levels, that are incrementally harder to reach (reaching level 1 only takes about 5 messages, but level 100 takes millions).
 
+View an example web leaderboard [Here](https://levels.mcmonkey.org/leaderboard/315163488085475337).
+
 ### Want To Add The Public Instance?
 
 - Just [click here](https://discord.com/api/oauth2/authorize?client_id=915501392519651358&permissions=2415922176&scope=bot%20applications.commands).
@@ -23,7 +25,23 @@ By default, when a user posts a message (at least one minute after their last me
 - 3: create folder `config` at top level
 - 4: You need to have a Discord bot already - check [this guide](https://discordpy.readthedocs.io/en/stable/discord.html) if you don't know how to get one. Requires messages intent, and slash commands grant. Make sure to add the bot to your server(s).
 - 5: within `config` create file `token.txt` with contents being your Discord bot's token
-- 6: `./start.sh`. Will run in a screen which you can attach to with `screen -r levelsbot`
+- 6: if you want, create `config.fds` and configure it according to config reference below
+- 7: `./start.sh`. Will run in a screen which you can attach to with `screen -r levelsbot`
+
+### Config File Reference
+
+Reference format for `config.fds`:
+
+```yml
+webpage:
+    # If true, will enable the leaderboard webpage host
+    enable: false
+    # If enabled, you can configure the listen address
+    # It is strongly recommended you bind an internal port and use a reverse proxy like nginx or apache2.
+    listen: http://127.0.0.1:8099/
+    # The external address of the website, for generated links
+    address: https://example.com/
+```
 
 ### Licensing pre-note:
 
