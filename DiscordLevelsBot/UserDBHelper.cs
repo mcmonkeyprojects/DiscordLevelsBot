@@ -274,5 +274,31 @@ namespace DiscordLevelsBot
                 return false;
             }
         }
+
+        /// <summary>Entirely removes a user from the database.</summary>
+        public void RemoveUser(UserData user)
+        {
+            if (Config.TopID == user.RawID)
+            {
+                Config.TopID = user.LeaderboardPrev;
+            }
+            if (Config.BottomID == user.RawID)
+            {
+                Config.BottomID = user.LeaderboardNext;
+            }
+            if (user.LeaderboardNext != 0)
+            {
+                UserData next = GetUser(user.LeaderboardNext);
+                next.LeaderboardPrev = user.RawID;
+                DBStoreUser(next);
+            }
+            if (user.LeaderboardPrev != 0)
+            {
+                UserData prev = GetUser(user.LeaderboardPrev);
+                prev.LeaderboardNext = user.RawID;
+                DBStoreUser(prev);
+            }
+            Users.Delete(user.DB_ID_Signed);
+        }
     }
 }

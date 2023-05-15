@@ -180,15 +180,24 @@ namespace DiscordLevelsBot
                         {
                             UserDBHelper database = UserDBHelper.GetDBForGuild(targetGuildId, "");
                             UserData usr = database.Users.FindById(unchecked((long)incorrectUserId));
+                            UserData targetUsr = database.Users.FindById(unchecked((long)correctUserId));
                             if (usr is null)
                             {
                                 Console.WriteLine("Invalid user ID");
                             }
                             else
                             {
-                                database.Users.Delete(unchecked((long)incorrectUserId));
+                                // Nuke old user from database
+                                if (targetUsr is not null)
+                                {
+                                    database.RemoveUser(targetUsr);
+                                }
+                                database.RemoveUser(usr);
+                                // Reset user data for recalculating
+                                usr.LeaderboardPrev = 0;
+                                usr.LeaderboardNext = 0;
                                 usr.RawID = correctUserId;
-                                database.Users.Upsert(usr);
+                                database.UpdateUser(usr, null);
                                 Console.WriteLine("Done");
                             }
                         }
