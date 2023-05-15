@@ -152,6 +152,7 @@ namespace DiscordLevelsBot
                         if (split.Length == 2 && ulong.TryParse(split[1], out ulong importGuildId))
                         {
                             DataImport(importGuildId);
+                            Console.WriteLine("Done");
                         }
                         else
                         {
@@ -167,10 +168,33 @@ namespace DiscordLevelsBot
                                 user.LastUpdatedTime = 0;
                                 database.DBStoreUser(user);
                             }
+                            Console.WriteLine("Done");
                         }
                         else
                         {
                             Console.WriteLine("reset_all_seen_times (guild_id)");
+                        }
+                        break;
+                    case "replace_user_id":
+                        if (split.Length == 4 && ulong.TryParse(split[1], out ulong targetGuildId) && ulong.TryParse(split[2], out ulong incorrectUserId) && ulong.TryParse(split[3], out ulong correctUserId))
+                        {
+                            UserDBHelper database = UserDBHelper.GetDBForGuild(targetGuildId, "");
+                            UserData usr = database.Users.FindById(unchecked((long)incorrectUserId));
+                            if (usr is null)
+                            {
+                                Console.WriteLine("Invalid user ID");
+                            }
+                            else
+                            {
+                                database.Users.Delete(unchecked((long)incorrectUserId));
+                                usr.RawID = correctUserId;
+                                database.Users.Upsert(usr);
+                                Console.WriteLine("Done");
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("replace_user_id (guild_id) (incorrect_user_id) (correct_user_id)");
                         }
                         break;
                     default:

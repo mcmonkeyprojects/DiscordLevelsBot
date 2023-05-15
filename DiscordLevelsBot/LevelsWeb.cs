@@ -118,9 +118,11 @@ namespace DiscordLevelsBot
                 {
                     return cached;
                 }
-                PageHelper page = new();
-                page.Title = "Leaderboard for " + MicroWebHelper.HtmlEscape(database.Name);
-                page.Description = $"Discord Levels Bot leaderbord for Discord Guild '{MicroWebHelper.HtmlEscape(database.Name)}'! Are you active enough?!";
+                PageHelper page = new()
+                {
+                    Title = "Leaderboard for " + MicroWebHelper.HtmlEscape(database.Name),
+                    Description = $"Discord Levels Bot leaderbord for Discord Guild '{MicroWebHelper.HtmlEscape(database.Name)}'! Are you active enough?!"
+                };
                 string header = page.GetInjectable(Header);
                 string footer = page.GetInjectable(Footer);
                 int rank = 0;
