@@ -53,10 +53,7 @@ namespace DiscordLevelsBot
         {
             ConsoleCancelToken.Cancel();
             UserDBHelper.Shutdown();
-            if (LevelsWeb.WebHelper is not null)
-            {
-                LevelsWeb.WebHelper.Cancel();
-            }
+            LevelsWeb.WebHelper?.Cancel();
         }
 
         public static long XPToNextLevelFrom(long level) => (5 * (level * level)) + (50 * level) + 100;
