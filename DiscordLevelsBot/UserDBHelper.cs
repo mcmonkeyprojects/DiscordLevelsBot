@@ -289,13 +289,13 @@ namespace DiscordLevelsBot
             if (user.LeaderboardNext != 0)
             {
                 UserData next = GetUser(user.LeaderboardNext);
-                next.LeaderboardPrev = user.RawID;
+                next.LeaderboardPrev = user.LeaderboardPrev;
                 DBStoreUser(next);
             }
             if (user.LeaderboardPrev != 0)
             {
                 UserData prev = GetUser(user.LeaderboardPrev);
-                prev.LeaderboardNext = user.RawID;
+                prev.LeaderboardNext = user.LeaderboardNext;
                 DBStoreUser(prev);
             }
             Users.Delete(user.DB_ID_Signed);
