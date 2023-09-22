@@ -418,21 +418,26 @@ namespace DiscordLevelsBot
         public static void CheckRewards(UserDBHelper database, UserData user, SocketGuildUser discordUser)
         {
             IReadOnlyCollection<SocketRole> roles = discordUser.Roles;
+            List<ulong> rewards = new();
             foreach (GuildConfig.LevelUpReward reward in database.Config.LevelRewards)
             {
                 if (user.Level >= reward.Level)
                 {
                     if (!roles.Any(r => r.Id == reward.Role))
                     {
-                        try
-                        {
-                            discordUser.AddRoleAsync(reward.Role).Wait();
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.Error.WriteLine($"Failed to add role {reward.Role} to user {user.RawID} in guild {database.Guild}: {ex}");
-                        }
+                        rewards.Add(reward.Role);
                     }
+                }
+            }
+            if (rewards.Any())
+            {
+                try
+                {
+                    discordUser.AddRolesAsync(rewards).Wait();
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"Failed to add role(s) {rewards.JoinString(", ")} to user {user.RawID} in guild {database.Guild}: {ex}");
                 }
             }
         }
