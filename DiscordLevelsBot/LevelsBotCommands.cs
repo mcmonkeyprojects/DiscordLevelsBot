@@ -289,10 +289,22 @@ namespace DiscordLevelsBot
                 database.Config.MinimumLevelForNotif = newMinNotifLevel;
                 SendGenericPositiveMessageReply(command.Message, "Success", "Set.");
             }
+            else if (command.CleanedArguments[0] == "sweep")
+            {
+                channel.Guild.DownloadUsersAsync().Wait();
+                foreach (SocketGuildUser otherUser in channel.Guild.Users)
+                {
+                    UserData udata = database.GetUser(otherUser.Id);
+                    if (udata.Level > 0)
+                    {
+                        Program.CheckRewards(database, udata, otherUser);
+                    }
+                }
+            }
             else
             {
                 SendGenericNegativeMessageReply(command.Message, "Invalid Command", "Sub-commands available: `restrict_channel [id]`, `unrestrict_channel [id]`, `add_level_reward [level] [role]`, `remove_level_reward [level] [role]`, `show_restrictions`, `show_rewards`, "
-                    + "`min_xp_per_tick (amount)`, `max_xp_per_tick (amount)`, `seconds_per_tick (seconds)`, `min_notif_level (level)`");
+                    + "`min_xp_per_tick (amount)`, `max_xp_per_tick (amount)`, `seconds_per_tick (seconds)`, `min_notif_level (level)`, `sweep`");
                 return;
             }
             database.UpdateConfig();
