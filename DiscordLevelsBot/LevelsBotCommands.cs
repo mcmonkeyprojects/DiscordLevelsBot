@@ -291,6 +291,7 @@ namespace DiscordLevelsBot
             }
             else if (command.CleanedArguments[0] == "sweep")
             {
+                SendGenericPositiveMessageReply(command.Message, "Info", $"Sweeping...");
                 channel.Guild.DownloadUsersAsync().Wait();
                 foreach (SocketGuildUser otherUser in channel.Guild.Users)
                 {
@@ -300,6 +301,7 @@ namespace DiscordLevelsBot
                         Program.CheckRewards(database, udata, otherUser);
                     }
                 }
+                SendGenericPositiveMessageReply(command.Message, "Info", $"Sweep complete.");
             }
             else
             {
