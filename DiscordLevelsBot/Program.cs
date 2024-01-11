@@ -397,10 +397,10 @@ namespace DiscordLevelsBot
                     origLevel = user.Level;
                     didGrantAny = database.GrantXPIfNeeded(user, author);
                 }
-                if (didGrantAny && user.Level > origLevel)
+                if (didGrantAny && (user.Level > origLevel || Random.Shared.Next(100) <= 10))
                 {
                     CheckRewards(database, user, author);
-                    if (user.Level >= database.Config.MinimumLevelForNotif)
+                    if (user.Level > origLevel && user.Level >= database.Config.MinimumLevelForNotif)
                     {
                         UserCommands.SendReply(userMessage, new EmbedBuilder().WithTitle("Level up!").WithDescription($"Congratulations <@{user.RawID}>! You're now at **level {user.Level}**!")
                             .WithThumbnailUrl(DiscordBotBaseHelper.CurrentBot.Client.CurrentUser.GetAvatarUrl())
