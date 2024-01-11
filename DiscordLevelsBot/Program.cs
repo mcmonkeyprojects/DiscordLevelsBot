@@ -121,7 +121,7 @@ namespace DiscordLevelsBot
                 .AddOption("user", ApplicationCommandOptionType.User, "(Optional) A different user to show the leveling info of.", isRequired: false);
             SlashCommandBuilder leaderboardCommand = new SlashCommandBuilder().WithName("leaderboard").WithDescription("Shows the whole leveling leaderboard for this Discord group.")
                 .AddOption("start", ApplicationCommandOptionType.Integer, "(Optional) alternate index to start the board at (eg start at 11 to show ranks 11-20).", isRequired: false);
-            bot.Client.BulkOverwriteGlobalApplicationCommandsAsync(new ApplicationCommandProperties[] { rankCommand.Build(), leaderboardCommand.Build() });
+            bot.Client.BulkOverwriteGlobalApplicationCommandsAsync([rankCommand.Build(), leaderboardCommand.Build()]);
         }
 
         public static async void ConsoleLoop()
@@ -226,8 +226,8 @@ namespace DiscordLevelsBot
                     Console.WriteLine("Missing import data file.");
                     return;
                 }
-                Dictionary<string, ulong> altNameLookup = new();
-                Dictionary<string, ulong> additionalNameLookup = new();
+                Dictionary<string, ulong> altNameLookup = [];
+                Dictionary<string, ulong> additionalNameLookup = [];
                 if (File.Exists("config/users_lastknown.txt"))
                 {
                     foreach (string seen in File.ReadAllLines("config/users_lastknown.txt"))
@@ -418,7 +418,7 @@ namespace DiscordLevelsBot
         public static void CheckRewards(UserDBHelper database, UserData user, SocketGuildUser discordUser)
         {
             IReadOnlyCollection<SocketRole> roles = discordUser.Roles;
-            List<ulong> rewards = new();
+            List<ulong> rewards = [];
             foreach (GuildConfig.LevelUpReward reward in database.Config.LevelRewards)
             {
                 if (user.Level >= reward.Level)

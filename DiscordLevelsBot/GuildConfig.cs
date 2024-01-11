@@ -45,14 +45,8 @@ namespace DiscordLevelsBot
         /// <summary>Ensures all lists are initialized.</summary>
         public void Ensure()
         {
-            if (RestrictedChannels is null)
-            {
-                RestrictedChannels = new HashSet<ulong>();
-            }
-            if (LevelRewards is null)
-            {
-                LevelRewards = new List<LevelUpReward>();
-            }
+            RestrictedChannels ??= [];
+            LevelRewards ??= [];
         }
     }
 }

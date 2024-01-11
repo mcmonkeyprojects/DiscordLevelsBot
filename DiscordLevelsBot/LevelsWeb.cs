@@ -24,7 +24,7 @@ namespace DiscordLevelsBot
 
         public static MicroWebHelper.WebResult IndexResult, Error404Result;
 
-        public static Dictionary<ulong, MicroWebHelper.WebResult> CachedBoards = new();
+        public static Dictionary<ulong, MicroWebHelper.WebResult> CachedBoards = [];
 
         /// <summary>Cache rate - default 30 minutes.</summary>
         public static long CacheMillis = 30 * 60 * 1000;
@@ -93,7 +93,7 @@ namespace DiscordLevelsBot
             }
         }
 
-        public static string[] RankColors = new[] { "bg-warning", "bg-light", "bg-primary" };
+        public static string[] RankColors = ["bg-warning", "bg-light", "bg-primary"];
 
         public static void GetBoardEntry(StringBuilder output, int rank, UserData data)
         {
