@@ -211,7 +211,7 @@ namespace DiscordLevelsBot
             {
                 if (discordUser is not null)
                 {
-                    user.LastKnownName = $"{discordUser.Username}#{discordUser.Discriminator}";
+                    user.LastKnownName = $"{discordUser.Username}";
                     user.LastKnownAvatar = discordUser.GetAvatarUrl() ?? discordUser.GetDefaultAvatarUrl();
                 }
                 if (user.LeaderboardNext == 0 && user.LeaderboardPrev == 0)
