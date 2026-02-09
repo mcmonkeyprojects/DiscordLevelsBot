@@ -197,10 +197,11 @@ namespace DiscordLevelsBot
                                     {
                                         Console.WriteLine($"Repositioned {x} users...");
                                     }
-                                    database.Reposition(user);
+                                    database.UpdateUser(user, null);
                                 }
                             }
                         }
+                        Console.WriteLine($"Done with all.");
                         break;
                     case "replace_user_id":
                         if (split.Length == 4 && ulong.TryParse(split[1], out ulong targetGuildId) && ulong.TryParse(split[2], out ulong incorrectUserId) && ulong.TryParse(split[3], out ulong correctUserId))
