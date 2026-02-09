@@ -178,10 +178,17 @@ namespace DiscordLevelsBot
                     case "reposition_all":
                         foreach (UserDBHelper database in UserDBHelper.DatabaseByGuild.Values)
                         {
+                            Console.WriteLine($"Repositioning {database.Users.Count()} users in guild {database.Guild}...");
                             lock (database.Lock)
                             {
+                                int x = 0;
                                 foreach (UserData user in database.Users.FindAll())
                                 {
+                                    x++;
+                                    if (x % 100 == 0)
+                                    {
+                                        Console.WriteLine($"Repositioned {x} users...");
+                                    }
                                     database.Reposition(user);
                                 }
                             }
