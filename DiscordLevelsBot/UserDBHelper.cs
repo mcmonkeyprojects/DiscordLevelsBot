@@ -82,6 +82,9 @@ namespace DiscordLevelsBot
         /// <summary>Random number generator.</summary>
         public Random Random = new();
 
+        /// <summary>Cache of user data. Do not use directly.</summary>
+        public Dictionary<ulong, UserData> UserCache = null;
+
         /// <summary>Initializes the database.</summary>
         public void Init()
         {
@@ -89,7 +92,7 @@ namespace DiscordLevelsBot
             Users = Database.GetCollection<UserData>("user_data");
             ConfigCollection = Database.GetCollection<GuildConfig>("guild_config");
             Config = ConfigCollection.FindById(0);
-            if (Config == null)
+            if (Config is null)
             {
                 Config = new GuildConfig();
                 Config.Ensure();
@@ -121,10 +124,18 @@ namespace DiscordLevelsBot
         {
             lock (Lock)
             {
+                if (UserCache is not null && UserCache.TryGetValue(id, out UserData cached))
+                {
+                    return cached;
+                }
                 long dbId = unchecked((long)id);
                 UserData user = Users.FindById(dbId);
                 if (user is not null)
                 {
+                    if (UserCache is not null)
+                    {
+                        UserCache[id] = user;
+                    }
                     return user;
                 }
                 return new UserData()
@@ -143,6 +154,10 @@ namespace DiscordLevelsBot
         /// <summary>Stores a user into the database.</summary>
         public void DBStoreUser(UserData user)
         {
+            if (UserCache is not null)
+            {
+                UserCache[user.RawID] = user;
+            }
             Users.Upsert(user);
         }
 

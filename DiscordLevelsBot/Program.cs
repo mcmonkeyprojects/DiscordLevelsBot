@@ -181,6 +181,7 @@ namespace DiscordLevelsBot
                             Console.WriteLine($"Repositioning {database.Users.Count()} users in guild {database.Guild}...");
                             lock (database.Lock)
                             {
+                                database.UserCache = [];
                                 foreach (UserData user in database.Users.FindAll())
                                 {
                                     user.LeaderboardNext = 0;
@@ -199,6 +200,7 @@ namespace DiscordLevelsBot
                                     }
                                     database.UpdateUser(user, null);
                                 }
+                                database.UserCache = null;
                             }
                         }
                         Console.WriteLine($"Done with all.");
