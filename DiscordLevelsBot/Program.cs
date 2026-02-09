@@ -175,6 +175,18 @@ namespace DiscordLevelsBot
                             Console.WriteLine("reset_all_seen_times (guild_id)");
                         }
                         break;
+                    case "reposition_all":
+                        foreach (UserDBHelper database in UserDBHelper.DatabaseByGuild.Values)
+                        {
+                            lock (database.Lock)
+                            {
+                                foreach (UserData user in database.Users.FindAll())
+                                {
+                                    database.Reposition(user);
+                                }
+                            }
+                        }
+                        break;
                     case "replace_user_id":
                         if (split.Length == 4 && ulong.TryParse(split[1], out ulong targetGuildId) && ulong.TryParse(split[2], out ulong incorrectUserId) && ulong.TryParse(split[3], out ulong correctUserId))
                         {
