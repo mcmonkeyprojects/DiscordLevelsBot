@@ -181,6 +181,14 @@ namespace DiscordLevelsBot
                             Console.WriteLine($"Repositioning {database.Users.Count()} users in guild {database.Guild}...");
                             lock (database.Lock)
                             {
+                                foreach (UserData user in database.Users.FindAll())
+                                {
+                                    user.LeaderboardNext = 0;
+                                    user.LeaderboardPrev = 0;
+                                    database.DBStoreUser(user);
+                                }
+                                database.Config.BottomID = 0;
+                                database.Config.TopID = 0;
                                 int x = 0;
                                 foreach (UserData user in database.Users.FindAll())
                                 {
